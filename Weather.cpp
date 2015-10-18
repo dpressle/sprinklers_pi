@@ -120,25 +120,25 @@ static void ParseResponse(EthernetClient & client, Weather::ReturnVals * ret)
 				{
 					ret->minhumidity = atoi(val);
 				}
-				else if (strcmp(key, "meantempi") == 0)
+				else if (strcmp(key, "meantempm") == 0)
 				{
-					ret->meantempi = atoi(val);
+					ret->meantempm = atoi(val);
 				}
-				else if (strcmp(key, "precip_today_in") == 0)
+				else if (strcmp(key, "precip_today_metric") == 0)
 				{
 					ret->precip_today = (atof(val) * 100.0);
 				}
-				else if (strcmp(key, "precipi") == 0)
+				else if (strcmp(key, "precipm") == 0)
 				{
-					ret->precipi = (atof(val) * 100.0);
+					ret->precipm = (atof(val) * 100.0);
 				}
 				else if (strcmp(key, "UV") == 0)
 				{
 					ret->UV = (atof(val) * 10.0);
 				}
-				else if (strcmp(key, "meanwindspdi") == 0)
+				else if (strcmp(key, "meanwindspdm") == 0)
 				{
-					ret->windmph = (atof(val) * 10.0);
+					ret->windkph = (atof(val) * 10.0);
 				}
 				else if (strcmp(key, "type") == 0)
 				{
@@ -173,8 +173,8 @@ int Weather::GetScale(const ReturnVals & vals) const
 	if (!vals.valid)
 		return 100;
 	const int humid_factor = 30 - (vals.maxhumidity + vals.minhumidity) / 2;
-	const int temp_factor = (vals.meantempi - 70) * 4;
-	const int rain_factor = (vals.precipi + vals.precip_today) * -2;
+	const int temp_factor = (vals.meantempm - 21) * 4;
+	const int rain_factor = (vals.precipm + vals.precip_today) * -2;
 	const int adj = min(max(0, 100+humid_factor+temp_factor+rain_factor), 200);
 	trace(F("Adjusting H(%d)T(%d)R(%d):%d\n"), humid_factor, temp_factor, rain_factor, adj);
 	return adj;

@@ -240,10 +240,10 @@ static void JSONwCheck(const KVPairs & key_value_pairs, FILE * stream_file)
 	fprintf_P(stream_file, PSTR("\t\"keynotfound\" : \"%s\",\n"), vals.keynotfound ? "true" : "false");
 	fprintf_P(stream_file, PSTR("\t\"minhumidity\" : \"%d\",\n"), vals.minhumidity);
 	fprintf_P(stream_file, PSTR("\t\"maxhumidity\" : \"%d\",\n"), vals.maxhumidity);
-	fprintf_P(stream_file, PSTR("\t\"meantempi\" : \"%d\",\n"), vals.meantempi);
+	fprintf_P(stream_file, PSTR("\t\"meantempm\" : \"%d\",\n"), vals.meantempm);
 	fprintf_P(stream_file, PSTR("\t\"precip_today\" : \"%d\",\n"), vals.precip_today);
-	fprintf_P(stream_file, PSTR("\t\"precip\" : \"%d\",\n"), vals.precipi);
-	fprintf_P(stream_file, PSTR("\t\"wind_mph\" : \"%d\",\n"), vals.windmph);
+	fprintf_P(stream_file, PSTR("\t\"precipm\" : \"%d\",\n"), vals.precipm);
+	fprintf_P(stream_file, PSTR("\t\"wind_kph\" : \"%d\",\n"), vals.windkph);
 	fprintf_P(stream_file, PSTR("\t\"UV\" : \"%d\",\n"), vals.UV);
 	fprintf_P(stream_file, PSTR("\t\"scale\" : \"%d\"\n"), scale);
 	fprintf(stream_file, "}");

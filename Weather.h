@@ -19,10 +19,10 @@ public:
 		bool keynotfound;
 		short minhumidity;
 		short maxhumidity;
-		short meantempi;
+		short meantempm;
 		short precip_today;
-		short precipi;
-		short windmph;
+		short precipm;
+		short windkph;
 		short UV;
 	};
 public:
