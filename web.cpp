@@ -219,7 +219,7 @@ static void JSONSettings(const KVPairs & key_value_pairs, FILE * stream_file)
 	GetApiKey(ak);
 	fprintf_P(stream_file, PSTR("\t\"apikey\" : \"%s\",\n"), ak);
 	GetPWS(ak);
-	ak[11] = 0;
+	ak[15] = 0;
 	fprintf_P(stream_file, PSTR("\t\"pws\" : \"%s\"\n"), ak);
 	fprintf(stream_file, "}");
 }
