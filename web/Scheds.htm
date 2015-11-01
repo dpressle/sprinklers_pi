@@ -12,9 +12,27 @@
   
   <body>
     <!-- Home -->
-    <div data-role="page" id="schedules">
+    <div data-role="page" id="schedules" data-theme="b">
       <script language="javascript">
+	  $(document).bind('pageinit', function () {
+          $('#systemz').bind('change', function (e) {
+            $.get("bin/run", {
+              system: this.value
+            });
+          });
+        });
+		
         $('#schedules').on('pagebeforeshow', function () {
+			$.ajax("json/state", {
+			async: false, 
+			dataType: "json", 
+			error: function () { 
+				alert ("Communications Failure" ); 
+			}, success: function (data) {
+				$('#systemz').val(data.run).slider('refresh');
+				}
+			});
+			
           $.ajax("json/schedules", {async: false, dataType: "json", success: function (data) {
             var output = '';
             for (var i = 0; i < data.Table.length; i++) {
@@ -35,12 +53,19 @@
 			<h3>Schedules</h3>
 		</div>
       <div data-role="content">
+		<div data-role="fieldcontain">
+			  <label for="systemz">Run Schedules</label>
+			  <select name="systemz" id="systemz" data-role="slider">
+				<option value="off">Off</option>
+				<option value="on" selected>On</option>
+			  </select>
+			</div>
         <div class="content-primary">
-          <ul data-role="listview" id='ulListview'></ul>
+          <ul data-role="listview" data-inset="true" id='ulListview'></ul>
         </div>
         <!--/content-primary -->
       </div>
-      <div data-role="footer" class="footer-docs" data-theme="c">
+      <div data-role="footer">
         <p>&copy; 2013 Richard Zimmerman</p>
       </div>
     </div>

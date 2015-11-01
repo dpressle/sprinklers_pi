@@ -13,33 +13,59 @@
   
   <body>
     <!-- Home -->
-    <div data-role="page" id="page1">
+    <div data-role="page" id="page1" data-theme="b">
       <script language="javascript" type="text/javascript">
-        $(document).bind('pageinit', function () {
-          $('#systemz').bind('change', function (e) {
-            $.get("bin/run", {
-              system: this.value
-            });
-          });
-        });
         var timeout = 0;
+		var schedState;
+		
         function pad(n, width, z) {
           z = z || '0';
           n = n + '';
           return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-        }
+        }		
+		
         $('#page1').on('pagebeforeshow', function () {
-          $.ajax("json/state", {async: false, dataType: "json", error: function () { alert ("Communications Failure" ); }, success: function (data) {
-            $('#zones_lv span').text(data.zones);
-            $('#schedules_lv span').text(data.schedules);
-            var dt = new Date(data.timenow*1000);
-            $('#version').text("V"+data.version);
-            $('#timediv').empty().append('' + pad(dt.getUTCHours(),2) + ':' + pad(dt.getUTCMinutes(),2) + ':' + pad(dt.getUTCSeconds(),2) + ' ' + pad(dt.getUTCFullYear(),4) + '/' + pad(dt.getUTCMonth()+1,2) + '/' + pad(dt.getUTCDate(),2) );
-            checkAnim(data);
-          }});
+			$.ajax("json/state", {
+				async: false, 
+				dataType: "json", 
+				error: function () { 
+					alert ("Communications Failure" ); 
+				}, success: function (data) {
+						schedState = data.run;
+						var dt = new Date(data.timenow*1000);
+						$('#version').text("V"+data.version);
+						$('#timediv').empty().append('' + pad(dt.getUTCHours(),2) + ':' + pad(dt.getUTCMinutes(),2) + ':' + pad(dt.getUTCSeconds(),2) + ' ' + pad(dt.getUTCFullYear(),4) + '/' + pad(dt.getUTCMonth()+1,2) + '/' + pad(dt.getUTCDate(),2) );
+						checkAnim(data);
+					}
+			});
+			
+          $.getJSON("json/zones", function (data) {
+			var output = '<li data-role="list-divider" id="lst-dev">Zones (Scheduling is ' + schedState + ')' + 
+							'<span class="ui-li-count">' + data.zones.length + '</span></li>';
+			for (var i = 0; i < data.zones.length; i++) {
+				var zone_id = String.fromCharCode(97+i+1);
+				var name = data.zones[i].name;
+				var enabled = data.zones[i].enabled;	
+				var pump = data.zones[i].pump;
+				var state = data.zones[i].state;
+				
+				if (enabled == 'on') {
+					output += '<li><a href="Zone.htm?id=' + zone_id + '">';
+					if (name == '' )
+						output += 'Zone' + (i + 1);
+					else
+						output += name;
+					output += '<p>Enabled, Pump: ' + pump + '</p>';
+					output += '</a></li>';
+				}
+			}
+			$('#ulListview').empty().append(output).listview('refresh');
+          });
         });
+		
         function checkAnim(data) {
-            $('#systemz').val(data.run).slider('refresh');
+            //$('#systemz').val(data.run).slider('refresh');
+			$('#sched').text('Scheduling is ' + data.run);
             if (data.offtime != null) {
               timeout = (new Date().getTime()) / 1000 + parseInt(data.offtime);
               $('#szone').text(data.onzone);
@@ -51,11 +77,15 @@
             } else
               $('#sgif').css('display', 'none');
         }
+		
         function updateAnim() {
           if ($.mobile.activePage.attr("id") != "page1") return;
           var remaining = Math.floor(timeout - (new Date().getTime()) / 1000);
           if (remaining >= 0) {
             $('#spantime').text(
+              Math.floor(remaining / 60).toString() + ":" + 
+              ("00" + (remaining % 60).toString()).substr(-2));
+			  $('#time_').text(
               Math.floor(remaining / 60).toString() + ":" + 
               ("00" + (remaining % 60).toString()).substr(-2));
               window.setTimeout(function () {updateAnim();}, 1000);
@@ -64,43 +94,52 @@
           }
         }
       </script>
-      <div data-theme="b" data-role="header">
-        <h3>Sprinklers</h3>
-		<a data-role="button" href="Settings.htm" data-icon="gear" data-iconpos="left" class="ui-btn-right">Settings</a>
-      </div>
-      <div data-role="content">
-        <div data-role="fieldcontain">
-          <label for="systemz">Run Schedules</label>
-          <select name="systemz" id="systemz" data-mini="true" data-role="slider">
-            <option value="off">Off</option>
-            <option value="on" selected>On</option>
-          </select>
-        </div>
-        <div id="sgif" style="display:none">
-          <img src="rainbird.gif" height="70" width="90"><br/>
-          <span id="szone"></span> <span id="spantime">00:00</span>
-        </div>
-        <ul data-role="listview" data-divider-theme="b" data-inset="true" data-split-theme="b">
-          <li data-theme="c"><a href="Scheds.htm" data-transition="slide" id="schedules_lv" name="schedules_lv">Schedules
-        <span class="ui-li-count">0</span></a>
-          </li>
-          <li data-theme="c"><a href="Manual.htm" data-transition="slide">Manual</a></li>
-          <li data-theme="c"><a href="QSched.htm" data-transition="slide">Quick Schedule</a>
-          </li>
-          <li data-theme="c"><a href="Zones.htm" data-transition="slide" id="zones_lv" name="zones_lv">Zones <span class=
-        "ui-li-count">0</span></a>
-          </li>
-          <li data-theme="c"><a href="Logs.htm" data-transition="slide">Logs</a>
-          </li>
-          <li data-theme="c"><a href="Advanced.htm" data-transition="slide">Advanced</a>
-          </li>
-        </ul>
-        <div id="timediv"></div>
-      </div> <!-- /content -->
-      <div data-role="footer" class="footer-docs" data-theme="c">
+		<div data-role="panel" id="overlayPanel" data-display="overlay">
+			<ul data-role="listview" data-inset="true" class>
+				<li data-icon="calendar">
+					<a href="Scheds.htm">Schedules</a>
+				</li>
+				<li data-icon="clock">
+					<a href="QSched.htm">Quick</a>
+				</li>
+				<li data-icon="edit">
+					<a href="Zones.htm">Zones</a>
+				</li>
+				<li data-icon="bullets">
+					<a href="Logs.htm">Logs</a>
+				</li>
+				<li data-icon="gear">
+					<a href="Settings.htm">Settings</a>
+				</li>
+				<li data-icon="info">
+					<a href="Advanced.htm">Advanced</a>
+				</li>
+			</ul>
+		</div>
+		<!-- /panel -->
+		
+		<div data-role="header">
+			<h3>Sprinklers</h3>
+			<a href="#overlayPanel" class="ui-btn ui-btn-left ui-icon-bars ui-btn-icon-notext"></a>
+		</div>
+		<!-- /header -->
+		
+		<div data-role="content">
+			<div id="sgif" style="display:none">
+			  <img src="rainbird.gif" height="70" width="90"><br/>
+			  <span id="szone"></span> <span id="spantime">00:00</span>
+			</div>
+			<ul data-role="listview" data-inset="true" id='ulListview'>
+			</ul>
+			<div id="timediv"></div>
+		</div> 
+	  <!-- /content -->
+	  
+      <div data-role="footer">
         <p><span id="version"></span> &copy; 2013 Richard Zimmerman</p>
       </div>
-    </div><!-- /page -->
+    </div>
+	<!-- /page -->
   </body>
 
 </html>
