@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <title>Zone Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" type="text/css">
+    <link rel="stylesheet" href="custom.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js" type="text/javascript"></script>
+  </head>
+  
+  <body>
+    <div data-role="page" id="zones" data-theme="b">
+      <script language="javascript">
+        $('#zones').on('pagebeforeshow', function () {
+		var id = getUrlVars()["id"];
+			if (id != null) {
+			  $.getJSON("json/zones", function (data) {
+				for (var i = 0; i < data.zones.length; i++) {
+						var zone_id = String.fromCharCode(97+i+1);
+						var name = data.zones[i].name;
+						if (name == '')
+							name = 'Zone' + (i+1);
+						var enabled = data.zones[i].enabled;	
+						var pump = data.zones[i].pump;
+						var state = data.zones[i].state;
+						if (id == zone_id) {
+							addValve(i+1, name, state)
+						}
+				}
+
+				$('#valves').trigger('create');
+				$('.valves').bind('slidestop', function (e) {
+					if (this.value == 'on') {
+						$('.valves').val('off').slider('refresh');
+						$(this).val('on').slider('refresh');
+					}
+					$.get("bin/manual", {
+						zone: this.name,
+						state: this.value
+					});
+				}); // slidestop
+			  });
+		  }
+        });
+		
+		function addValve(j, name, state) {
+          var zone_id = 'z' + String.fromCharCode(97+j);
+          var new_ctl = $('<label for="' + zone_id + '">Current Status:</label>' +
+            '<select class="valves" name="' + zone_id + '" id="' + zone_id + '" data-role="slider" data-mini="true">' +
+            ' <option value="off">Off</option><option value="on"' + ((state == 'on') ? ' selected' : ' ') + '>On</option></select>');
+          $('#valves').empty();
+		  new_ctl.appendTo('#valves');
+        }
+		
+        function zoneSubmitForm() {
+          $.ajax({
+            data: $('#zForm').serialize(),
+            type: 'get',
+            url: 'bin/setZones',
+            success: function (d) {
+              window.history.back();
+            },
+            error: function (xhr, st, e) {
+              alert(st);
+              window.history.back();
+            }
+          });
+        }
+		
+		function getUrlVars() {
+			var vars = {};
+			var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+				vars[key] = value;
+			});
+			return vars;
+		}	
+      </script>
+      <form id="zForm" action="#">
+        <div data-role="header" data-theme="b">
+          	<a data-role="button" data-rel="back" href="#page1" data-icon="back" data-iconpos="left" class="ui-btn-left">Back</a>
+			<h1>Manual Control</h1>
+        </div>
+        <!-- /header -->
+		<div data-role="content" id="valves"></div>
+        <!-- /content -->
+        <div data-role="footer">
+          <p>&copy; 2013 Richard Zimmerman</p>
+        </div>
+      </form>
+    </div>
+    <!-- /page -->
+  </body>
+</html>
